@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
-import { Mail, Phone, MapPin, Send } from "lucide-react";
+import { Mail, Phone, MapPin, Send, Loader2, CheckCircle } from "lucide-react";
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const ContactSection = () => {
   const [formData, setFormData] = useState({
@@ -9,11 +11,34 @@ const ContactSection = () => {
     project: "",
     message: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
-    console.log("Form submitted:", formData);
+    setIsSubmitting(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("send-contact-email", {
+        body: formData,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      setIsSubmitted(true);
+      toast.success("Message sent successfully! We'll get back to you soon.");
+      setFormData({ name: "", email: "", project: "", message: "" });
+      
+      // Reset success state after 5 seconds
+      setTimeout(() => setIsSubmitted(false), 5000);
+    } catch (error: any) {
+      console.error("Error sending message:", error);
+      toast.error("Failed to send message. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (
@@ -108,93 +133,128 @@ const ContactSection = () => {
             onSubmit={handleSubmit}
             className="card-elevated p-8"
           >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div>
-                <label
-                  htmlFor="name"
-                  className="block text-sm uppercase tracking-wider text-muted-foreground mb-2"
+            {isSubmitted ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex flex-col items-center justify-center py-12 text-center"
+              >
+                <CheckCircle className="w-16 h-16 text-primary mb-4" />
+                <h4 className="font-display text-2xl tracking-wide mb-2">
+                  MESSAGE SENT!
+                </h4>
+                <p className="text-muted-foreground">
+                  Thank you for reaching out. We'll get back to you within 24-48 hours.
+                </p>
+              </motion.div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <div>
+                    <label
+                      htmlFor="name"
+                      className="block text-sm uppercase tracking-wider text-muted-foreground mb-2"
+                    >
+                      Your Name
+                    </label>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
+                      disabled={isSubmitting}
+                      className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:border-primary transition-colors text-foreground disabled:opacity-50"
+                      placeholder="John Doe"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="email"
+                      className="block text-sm uppercase tracking-wider text-muted-foreground mb-2"
+                    >
+                      Your Email
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      disabled={isSubmitting}
+                      className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:border-primary transition-colors text-foreground disabled:opacity-50"
+                      placeholder="john@example.com"
+                    />
+                  </div>
+                </div>
+
+                <div className="mb-6">
+                  <label
+                    htmlFor="project"
+                    className="block text-sm uppercase tracking-wider text-muted-foreground mb-2"
+                  >
+                    Project Type
+                  </label>
+                  <select
+                    id="project"
+                    name="project"
+                    value={formData.project}
+                    onChange={handleChange}
+                    required
+                    disabled={isSubmitting}
+                    className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:border-primary transition-colors text-foreground disabled:opacity-50"
+                  >
+                    <option value="">Select a project type</option>
+                    <option value="Commercial / Ad">Commercial / Ad</option>
+                    <option value="Corporate Video">Corporate Video</option>
+                    <option value="Social Media Content">Social Media Content</option>
+                    <option value="Music Video">Music Video</option>
+                    <option value="Documentary">Documentary</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                <div className="mb-6">
+                  <label
+                    htmlFor="message"
+                    className="block text-sm uppercase tracking-wider text-muted-foreground mb-2"
+                  >
+                    Project Details
+                  </label>
+                  <textarea
+                    id="message"
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
+                    required
+                    disabled={isSubmitting}
+                    rows={5}
+                    className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:border-primary transition-colors text-foreground resize-none disabled:opacity-50"
+                    placeholder="Tell us about your project..."
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Your Name
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:border-primary transition-colors text-foreground"
-                  placeholder="John Doe"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm uppercase tracking-wider text-muted-foreground mb-2"
-                >
-                  Your Email
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:border-primary transition-colors text-foreground"
-                  placeholder="john@example.com"
-                />
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <label
-                htmlFor="project"
-                className="block text-sm uppercase tracking-wider text-muted-foreground mb-2"
-              >
-                Project Type
-              </label>
-              <select
-                id="project"
-                name="project"
-                value={formData.project}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:border-primary transition-colors text-foreground"
-              >
-                <option value="">Select a project type</option>
-                <option value="commercial">Commercial / Ad</option>
-                <option value="corporate">Corporate Video</option>
-                <option value="social">Social Media Content</option>
-                <option value="music">Music Video</option>
-                <option value="documentary">Documentary</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-
-            <div className="mb-6">
-              <label
-                htmlFor="message"
-                className="block text-sm uppercase tracking-wider text-muted-foreground mb-2"
-              >
-                Project Details
-              </label>
-              <textarea
-                id="message"
-                name="message"
-                value={formData.message}
-                onChange={handleChange}
-                required
-                rows={5}
-                className="w-full px-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:border-primary transition-colors text-foreground resize-none"
-                placeholder="Tell us about your project..."
-              />
-            </div>
-
-            <button type="submit" className="btn-primary w-full flex items-center justify-center gap-2">
-              <Send size={18} />
-              Send Message
-            </button>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 size={18} className="animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send size={18} />
+                      Send Message
+                    </>
+                  )}
+                </button>
+              </>
+            )}
           </motion.form>
         </div>
       </div>
