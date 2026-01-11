@@ -94,7 +94,7 @@ const ContactSection = () => {
                   <p className="text-muted-foreground text-sm uppercase tracking-wider">
                     Email
                   </p>
-                  <p className="text-foreground">hello@visualarcade.com</p>
+                  <p className="text-foreground">prathaybarua71@gmail.com</p>
                 </div>
               </div>
 
@@ -106,7 +106,7 @@ const ContactSection = () => {
                   <p className="text-muted-foreground text-sm uppercase tracking-wider">
                     Phone
                   </p>
-                  <p className="text-foreground">+1 (555) 123-4567</p>
+                  <p className="text-foreground">+880 1872115221</p>
                 </div>
               </div>
 
