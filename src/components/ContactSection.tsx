@@ -118,7 +118,7 @@ const ContactSection = () => {
                   <p className="text-muted-foreground text-sm uppercase tracking-wider">
                     Location
                   </p>
-                  <p className="text-foreground">Los Angeles, California</p>
+                  <p className="text-foreground">Banarupa, Rangamati</p>
                 </div>
               </div>
             </div>
